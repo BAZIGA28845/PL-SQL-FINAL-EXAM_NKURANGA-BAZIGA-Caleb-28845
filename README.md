@@ -62,25 +62,49 @@ Many businesses in Rwanda rely on manual inspection of expiry labels, which is t
 | **Phase VIII** | Final documentation, Business Intelligence analysis, and project presentation             |
 
 
-### **Phase I – Problem Identification**
 
-**Problem Definition**
-Many supermarkets and retail shops face challenges in monitoring product expiry dates due to manual checking of items on shelves and in storage. This often leads to expired products being sold or discarded late, resulting in financial loss, customer dissatisfaction, and health risks.
+# **PHASE I: PROBLEM IDENTIFICATION & PROJECT PROPOSAL**
 
-**Context**
-The system is designed for use in **supermarkets and retail shops and so on ** where large volumes of products are managed in batches with different expiry dates. It supports daily inventory operations by automatically tracking expiry dates and highlighting items that require immediate attention.
+## **Objective**
 
-**Target Users**
-Inventory clerks, shop attendants, store managers, and business owners responsible for stock control and operational decisions.
+Identify a real-world problem that requires an Oracle PL/SQL database solution with Business Intelligence (BI) potential.
 
-**Project Goals**
+---
 
-* Automate expiry date tracking using an Oracle PL/SQL database
-* Generate alerts for products nearing expiry
-* Record expired products separately for accountability and reporting
-* Improve stock rotation and reduce inventory waste
+### **Problem Definition**
 
-**Business Intelligence (BI) Potential**
-BI analytics can reveal expiry patterns, high-waste products, seasonal trends, and stock turnover rates, enabling managers to make informed decisions on pricing, promotions, restocking, and supplier evaluation.
+Many supermarkets and retail shops struggle to accurately monitor product expiry dates due to manual shelf inspections and record-keeping. This results in expired products remaining in stock, financial losses, customer dissatisfaction, and potential health risks.
+
+---
+
+### **Context**
+
+The system is intended for use in **supermarkets and retail shops** where large quantities of products are stored and sold in batches with varying expiry dates. It supports daily inventory operations by automating expiry monitoring and alert generation.
+
+---
+
+### **Target Users**
+
+* Inventory clerks
+* Shop attendants
+* Store managers
+* Business owners
+
+---
+
+### **Project Goals**
+
+* Automate product expiry tracking using Oracle PL/SQL
+* Generate alerts for near-expiring products
+* Maintain separate records for expired stock
+* Reduce waste and improve stock rotation
+
+---
+
+### **Business Intelligence (BI) Potential**
+
+The system supports analytics such as expiry trends, frequently wasted products, stock turnover rates, and supplier performance, enabling data-driven decisions on promotions, restocking, and inventory planning.
+
+
 
 
