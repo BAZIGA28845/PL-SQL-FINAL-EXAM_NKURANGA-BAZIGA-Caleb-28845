@@ -48,3 +48,18 @@ Many businesses in Rwanda rely on manual inspection of expiry labels, which is t
 * **Tools:** SQL Developer, Git
 
 
+## 📂 Project Implementation Roadmap
+
+| Phase          | Description                                                                               |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| **Phase I**    | Identification of the problem domain and presentation of the project proposal             |
+| **Phase II**   | Modeling of business processes using UML/BPMN diagrams with supporting explanation        |
+| **Phase III**  | Design of the logical database model including ER diagrams and a data dictionary          |
+| **Phase IV**   | Creation and configuration of the Oracle Pluggable Database (PDB)                         |
+| **Phase V**    | Physical table implementation with constraints and insertion of realistic test data       |
+| **Phase VI**   | Development of PL/SQL components including procedures, functions, packages, and cursors   |
+| **Phase VII**  | Implementation of advanced PL/SQL features such as triggers, business rules, and auditing |
+| **Phase VIII** | Final documentation, Business Intelligence analysis, and project presentation             |
+
+
+
