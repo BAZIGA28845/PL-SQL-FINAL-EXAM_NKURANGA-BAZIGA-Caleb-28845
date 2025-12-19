@@ -566,5 +566,6 @@ CREATE TABLE expired_stock (
 CREATE INDEX idx_expired_batch 
 ON expired_stock(batch_id)
 TABLESPACE SIEAS_INDEX;
+<img width="955" height="501" alt="14 CREATING TABLE EXPIRED STOCK" src="https://github.com/user-attachments/assets/253299e3-ba26-4bd5-91c4-3cb73115a9e6" />
 
 ```
