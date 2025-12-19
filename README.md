@@ -424,8 +424,147 @@ ALTER DATABASE TEMPFILE '...sieas_temp01.dbf' AUTOEXTEND ON NEXT 50M MAXSIZE UNL
 ✔ Enabled autoextend for scalability
 
 ---
+Perfect — thanks for the clarification 👍
+Below is a **READY-TO-PASTE GitHub README section** that:
 
+✔ Follows the **exact order you worked in**
+✔ Includes the **actual SQL code you used**
+✔ Clearly explains **what each part does**
+✔ Matches **academic + practical expectations**
 
+---
 
+# PHASE V: TABLE IMPLEMENTATION & DATA INSERTION
 
+## Objective
 
+Phase V focused on implementing the physical Oracle database for the **Smart Inventory Expiry Alert System**. This phase involved creating all tables from the logical design, enforcing constraints and relationships, inserting realistic data, and validating data integrity using SQL queries.
+
+---
+
+## 1. Table Creation
+
+All entities were converted into tables using appropriate **Oracle data types**, **primary keys**, **foreign keys**, **constraints**, and **indexes**. Tables were created in dedicated tablespaces for data and indexing.
+
+---
+
+### USERS Table
+
+Stores system users and their roles.
+
+```sql
+CREATE TABLE users (
+  user_id      VARCHAR2(36) PRIMARY KEY,
+  full_name    VARCHAR2(120) NOT NULL,
+  role         VARCHAR2(30) CHECK(role IN ('admin','manager','staff')),
+  phone        VARCHAR2(20),
+  email        VARCHAR2(120) UNIQUE,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_users_role 
+ON users(role) TABLESPACE SIEAS_INDEX;
+<img width="479" height="169" alt="3 CREATING USER" src="https://github.com/user-attachments/assets/4c94b03a-ea01-4588-940b-ac71df434c44" />
+
+```
+
+✔ Enforces valid roles
+✔ Automatically sets creation timestamp
+
+---
+
+### PRODUCT Table
+
+Stores product details.
+
+```sql
+CREATE TABLE product (
+  product_id     VARCHAR2(36) PRIMARY KEY,
+  name           VARCHAR2(120) NOT NULL UNIQUE,
+  category       VARCHAR2(60),
+  unit_price     NUMBER(10,2) DEFAULT 0 NOT NULL,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_product_category 
+ON product(category) TABLESPACE SIEAS_INDEX;
+<img width="958" height="501" alt="10  CREATING TABLE PRODUCT " src="https://github.com/user-attachments/assets/1cd268bc-bbf0-4873-bd27-cd7ab3fe035c" />
+
+```
+
+✔ Unique product names
+✔ Default pricing and timestamps
+
+---
+
+### BATCH Table
+
+Tracks product batches and expiry dates.
+
+```sql
+CREATE TABLE batch (
+  batch_id         VARCHAR2(36) PRIMARY KEY,
+  product_id       VARCHAR2(36) NOT NULL,
+  manufacture_date DATE NOT NULL,
+  expiry_date      DATE NOT NULL,
+  quantity         NUMBER(10) NOT NULL CHECK (quantity >= 0),
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_batch_product 
+      FOREIGN KEY (product_id) REFERENCES product(product_id),
+  CONSTRAINT chk_dates CHECK (expiry_date > manufacture_date)
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_batch_product ON batch(product_id) TABLESPACE SIEAS_INDEX;
+CREATE INDEX idx_batch_expiry  ON batch(expiry_date) TABLESPACE SIEAS_INDEX;
+<img width="959" height="505" alt="12 CREATE TABLE BATCH" src="https://github.com/user-attachments/assets/d0bd21d7-e68b-4ffc-8b36-a8ab4dc50b4a" />
+
+```
+
+✔ Enforces expiry logic
+✔ Maintains product–batch relationship
+
+---
+
+### EXPIRY_ALERT Table
+
+Stores alerts for products nearing expiry.
+
+```sql
+CREATE TABLE expiry_alert (
+  alert_id    VARCHAR2(36) PRIMARY KEY,
+  batch_id    VARCHAR2(36) NOT NULL,
+  alert_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  message     VARCHAR2(400) NOT NULL,
+  processed   CHAR(1) DEFAULT 'N' CHECK (processed IN ('Y','N')),
+  CONSTRAINT fk_alert_batch 
+      FOREIGN KEY (batch_id) REFERENCES batch(batch_id)
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_alert_batch ON expiry_alert(batch_id) TABLESPACE SIEAS_INDEX;
+CREATE INDEX idx_alert_date  ON expiry_alert(alert_date) TABLESPACE SIEAS_INDEX;
+
+```
+
+✔ Tracks alert processing status
+
+---
+
+### EXPIRED_STOCK Table
+
+Stores records of expired batches.
+
+```sql
+CREATE TABLE expired_stock (
+  expired_id  VARCHAR2(36) PRIMARY KEY,
+  batch_id    VARCHAR2(36) NOT NULL,
+  expired_on  DATE DEFAULT TRUNC(SYSDATE),
+  note        VARCHAR2(300),
+  CONSTRAINT fk_expired_batch 
+      FOREIGN KEY (batch_id) REFERENCES batch(batch_id)
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_expired_batch 
+ON expired_stock(batch_id)
+TABLESPACE SIEAS_INDEX;
+
+```
