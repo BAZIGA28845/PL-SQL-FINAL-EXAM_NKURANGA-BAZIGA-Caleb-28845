@@ -106,7 +106,7 @@ The system is intended for use in **supermarkets and retail shops** where large 
 The system supports analytics such as expiry trends, frequently wasted products, stock turnover rates, and supplier performance, enabling data-driven decisions on promotions, restocking, and inventory planning.
 
 # PHASE II: Business Process Modeling 
-<img width="410" height="372" alt="image" src="https://github.com/user-attachments/assets/8d66b036-3b67-4757-9a19-ccecee786581" />
+<img width="434" height="414" alt="Screenshot 2025-12-19 143056" src="https://github.com/user-attachments/assets/d41254d9-a194-4e16-a2ea-b526ec818cb7" />
 
 ## Overview and Scope
 
