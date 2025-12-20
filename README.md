@@ -204,6 +204,7 @@ Design a well-structured **logical data model** for the Smart Inventory Expiry A
 ---
 
 ## **Entity–Relationship (ER) Design**
+<img width="315" height="395" alt="Screenshot 2025-12-19 152735" src="https://github.com/user-attachments/assets/6806370c-1a33-44e7-b977-91c4df52cbd9" />
 
 The logical model identifies the main entities required to support inventory expiry management in supermarkets and shops. Each entity is clearly defined with attributes, primary keys (PK), and foreign keys (FK), and relationships reflect real-world business rules.
 
@@ -449,6 +450,7 @@ All entities were converted into tables using appropriate **Oracle data types**,
 ---
 
 ### USERS Table
+<img width="959" height="503" alt="11 CREATE TABLE USER " src="https://github.com/user-attachments/assets/674e21cb-d7fd-4a15-b485-e0abbf69fb6e" />
 
 Stores system users and their roles.
 
@@ -473,6 +475,7 @@ ON users(role) TABLESPACE SIEAS_INDEX;
 ---
 
 ### PRODUCT Table
+<img width="958" height="501" alt="10  CREATING TABLE PRODUCT " src="https://github.com/user-attachments/assets/59d98409-a02e-4020-ab40-718eef0f4d81" />
 
 Stores product details.
 
@@ -496,6 +499,7 @@ ON product(category) TABLESPACE SIEAS_INDEX;
 ---
 
 ### BATCH Table
+<img width="959" height="505" alt="12 CREATE TABLE BATCH" src="https://github.com/user-attachments/assets/7229a489-048d-4bb3-80ca-63ee3d604e8f" />
 
 Tracks product batches and expiry dates.
 
@@ -523,6 +527,7 @@ CREATE INDEX idx_batch_expiry  ON batch(expiry_date) TABLESPACE SIEAS_INDEX;
 ---
 
 ### EXPIRY_ALERT Table
+<img width="960" height="504" alt="13 CREATE TABLE EXPIRE_ALERT" src="https://github.com/user-attachments/assets/8479e5c8-478e-4c17-a49b-41f3d8ccb7ab" />
 
 Stores alerts for products nearing expiry.
 
@@ -549,6 +554,7 @@ CREATE INDEX idx_alert_date  ON expiry_alert(alert_date) TABLESPACE SIEAS_INDEX;
 ### EXPIRED_STOCK Table
 
 Stores records of expired batches.
+<img width="955" height="501" alt="14 CREATING TABLE EXPIRED STOCK" src="https://github.com/user-attachments/assets/81455a77-a6c6-440d-ba38-eeae78908ad8" />
 
 ```sql
 CREATE TABLE expired_stock (
