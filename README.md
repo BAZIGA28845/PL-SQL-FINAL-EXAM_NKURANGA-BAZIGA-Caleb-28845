@@ -265,6 +265,8 @@ The logical design supports BI by:
 To create and configure a dedicated Oracle Pluggable Database (PDB), users, tablespaces, and system parameters to provide a secure, scalable, and production-ready environment for the Smart Inventory Expiry Alert System.
 
 ---
+## **0. PDB CREATION**
+<img width="480" height="168" alt="CREATING PDB" src="https://github.com/user-attachments/assets/77e27ae2-b67a-4745-912d-460f808e5d2d" />
 
 ## **1. PDB Selection and Verification**
 <img width="480" height="168" alt="CREATING PDB" src="https://github.com/user-attachments/assets/3ff68859-d480-4b83-9281-0b4a1995ec4a" />
@@ -296,6 +298,7 @@ A dedicated project user was created to isolate ownership of all database object
 ```sql
 CREATE USER BAZIGA IDENTIFIED BY CALEB;
 ```
+<img width="479" height="169" alt="3 CREATING USER" src="https://github.com/user-attachments/assets/973abe36-c620-459b-9818-b61dc5b17266" />
 
 ---
 
