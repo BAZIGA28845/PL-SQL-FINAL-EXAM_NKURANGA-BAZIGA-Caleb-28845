@@ -62,7 +62,7 @@ Many businesses in Rwanda rely on manual inspection of expiry labels, which is t
 | **Phase V**    | Physical table implementation with constraints and insertion of realistic test data       |[PHASEV](PHASEV.md)                         |
 | **Phase VI**   | Development of PL/SQL components including procedures, functions, packages, and cursors   |[PHASEVI](PHASEVI.md)                       |
 | **Phase VII**  | Implementation of advanced PL/SQL features such as triggers, business rules, and auditing |[PHASEVII](PHASEVII.md)                     |
-| **Phase VIII** | Final documentation, Business Intelligence analysis, and project presentation             |[PHASEVIII](PHASEVIII.md)                   |
+| **Phase VIII** | Final documentation, Business Intelligence analysis, and project presentation             |[BI.md](BI.md)                              |
 
 
 ---
@@ -123,7 +123,7 @@ Restricted PRODUCT operations on weekdays and public holidays and logged all act
 ## **Phase VIII – Reporting & Business Intelligence**
 
 Created SQL views and analytical queries.
-Defined KPIs, stakeholders, dashboards, and reporting frequency to support decision-making.[PHASEVIII](PHASEVIII.md)
+Defined KPIs, stakeholders, dashboards, and reporting frequency to support decision-making.[BI.md](BI.md)
 
 ---
 
