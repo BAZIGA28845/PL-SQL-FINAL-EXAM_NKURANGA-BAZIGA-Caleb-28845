@@ -38,7 +38,7 @@ This approach improves data accuracy, reduces duplication, and simplifies mainte
 
 ---
 
-## **Data Dictionary **
+## **Data Dictionary**
 
 | Table Name    | Key Attributes                                        | Purpose                     |
 | ------------- | ----------------------------------------------------- | --------------------------- |
