@@ -1238,6 +1238,9 @@ CREATE OR REPLACE PACKAGE BODY inventory_pkg IS
 END inventory_pkg;
 /
 ```
+**cursors**
+cursor allows PL/SQL to fetch and process multiple rows individually from a query result.
+<img width="959" height="503" alt="0000CURSORS" src="https://github.com/user-attachments/assets/8616996a-f7d6-4378-bd1c-b94422c05b6e" />
 
 ---
 
@@ -1453,7 +1456,6 @@ WHERE quantity < 0;
 SELECT DISTINCT username
 FROM error_log;
 ```
-
 ---
 
 ✅ These tests **cover**:
@@ -1464,6 +1466,7 @@ FROM error_log;
 * Packages
 * Analytics
 * Data integrity
+  
 
 
 
