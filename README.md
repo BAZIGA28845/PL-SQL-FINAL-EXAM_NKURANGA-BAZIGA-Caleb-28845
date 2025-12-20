@@ -676,6 +676,309 @@ FROM batch
 WHERE expiry_date < SYSDATE;
 ```
 
+> **DATA INTEGRITY VERIFICATION & TESTING QUERIES**
+
+# PHASE V (CONTINUATION)
+
+## DATA INTEGRITY VERIFICATION
+
+---
+
+## 1️⃣ Data Completeness Checks
+
+### Ensure primary keys are never NULL
+
+```sql
+SELECT COUNT(*) AS null_product_ids
+FROM product
+WHERE product_id IS NULL;
+
+SELECT COUNT(*) AS null_batch_ids
+FROM batch
+WHERE batch_id IS NULL;
+
+SELECT COUNT(*) AS null_user_ids
+FROM users
+WHERE user_id IS NULL;
+
+SELECT COUNT(*) AS null_alert_ids
+FROM expiry_alert
+WHERE alert_id IS NULL;
+```
+<img width="953" height="503" alt="data completness check" src="https://github.com/user-attachments/assets/d0506370-e229-496d-8419-4965e5eee6dd" />
+
+✅ Expected result: **0 for all**
+
+---
+
+## 2️⃣ Constraint Enforcement Checks
+<img width="960" height="501" alt="x UNIQUE constraint email" src="https://github.com/user-attachments/assets/c988e08b-901b-4548-a76e-4f3da57bd5e4" />
+
+### UNIQUE constraint (email)
+
+```sql
+SELECT email, COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+```
+
+✅ Expected: **No rows**
+
+---
+
+### CHECK constraint (roles)
+
+```sql
+SELECT *
+FROM users
+WHERE role NOT IN ('admin','manager','staff');
+```
+
+✅ Expected: **No rows**
+
+---
+
+### CHECK constraint (quantity >= 0)
+
+```sql
+SELECT *
+FROM batch
+WHERE quantity < 0;
+```
+
+✅ Expected: **No rows**
+
+---
+
+### CHECK constraint (expiry_date > manufacture_date)
+
+```sql
+SELECT *
+FROM batch
+WHERE expiry_date <= manufacture_date;
+```
+
+✅ Expected: **No rows**
+
+---
+
+## 3️⃣ Foreign Key Integrity Checks
+
+### Batches without products (should not exist)
+
+```sql
+SELECT b.batch_id
+FROM batch b
+LEFT JOIN product p ON b.product_id = p.product_id
+WHERE p.product_id IS NULL;
+```
+
+---
+
+### Alerts without batches (should not exist)
+
+```sql
+SELECT a.alert_id
+FROM expiry_alert a
+LEFT JOIN batch b ON a.batch_id = b.batch_id
+WHERE b.batch_id IS NULL;
+```
+
+---
+
+### Expired stock without batches (should not exist)
+
+```sql
+SELECT e.expired_id
+FROM expired_stock e
+LEFT JOIN batch b ON e.batch_id = b.batch_id
+WHERE b.batch_id IS NULL;
+```
+
+✅ Expected: **No rows for all**
+
+---
+
+## 4️⃣ DEFAULT value validation
+
+### Auto timestamps populated
+
+```sql
+SELECT COUNT(*)
+FROM product
+WHERE created_at IS NULL;
+```
+
+```sql
+SELECT COUNT(*)
+FROM batch
+WHERE created_at IS NULL;
+```
+
+✅ Expected: **0**
+
+---
+
+# TESTING QUERIES
+
+This proves the database **works for real use cases**.
+
+---
+
+## 5️⃣ Basic Retrieval (SELECT *)
+
+```sql
+SELECT * FROM users FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM product FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM batch FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM expiry_alert FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM expired_stock FETCH FIRST 10 ROWS ONLY;
+```
+
+---
+
+## 6️⃣ JOIN Queries (Multi-table)
+
+### Products with batch details
+
+```sql
+SELECT p.name, b.batch_id, b.quantity, b.expiry_date
+FROM product p
+JOIN batch b ON p.product_id = b.product_id;
+```
+
+---
+
+### Expiry alerts with product names
+
+```sql
+SELECT p.name, a.message, a.alert_date
+FROM expiry_alert a
+JOIN batch b   ON a.batch_id = b.batch_id
+JOIN product p ON b.product_id = p.product_id;
+```
+
+---
+
+### Expired stock report
+
+```sql
+SELECT p.name, e.expired_on, e.note
+FROM expired_stock e
+JOIN batch b   ON e.batch_id = b.batch_id
+JOIN product p ON b.product_id = p.product_id;
+```
+
+---
+
+## 7️⃣ Aggregation Queries (GROUP BY)
+
+### Number of users per role
+
+```sql
+SELECT role, COUNT(*) AS total_users
+FROM users
+GROUP BY role;
+```
+
+---
+
+### Total quantity per product
+
+```sql
+SELECT p.name, SUM(b.quantity) AS total_quantity
+FROM product p
+JOIN batch b ON p.product_id = b.product_id
+GROUP BY p.name;
+```
+
+---
+
+### Expiring batches count
+
+```sql
+SELECT COUNT(*) AS expiring_soon
+FROM batch
+WHERE expiry_date BETWEEN TRUNC(SYSDATE)
+                      AND TRUNC(SYSDATE) + 7;
+```
+
+---
+
+## 8️⃣ Subqueries (Advanced but expected)
+
+### Products that have expired batches
+
+```sql
+SELECT name
+FROM product
+WHERE product_id IN (
+  SELECT product_id
+  FROM batch
+  WHERE expiry_date < TRUNC(SYSDATE)
+);
+```
+
+---
+
+### Users who are managers
+
+```sql
+SELECT *
+FROM users
+WHERE role = (
+  SELECT DISTINCT role
+  FROM users
+  WHERE role = 'manager'
+);
+```
+
+---
+
+## 9️⃣ Business Rule Validation Queries
+
+### Batches with zero stock (edge case)
+
+```sql
+SELECT *
+FROM batch
+WHERE quantity = 0;
+```
+
+---
+
+### Unprocessed alerts
+
+```sql
+SELECT *
+FROM expiry_alert
+WHERE processed = 'N';
+```
+
+---
+
+# FINAL CONFIRMATION ✅
+
+✔ All entities converted to tables
+✔ Oracle data types used correctly
+✔ PKs & FKs enforced
+✔ Indexes created
+✔ Constraints enforced
+✔ 100–500+ realistic rows
+✔ Edge cases included
+✔ Data integrity verified
+✔ Queries tested
+
+---
+
+##  conclusion
+
+> *All tables were successfully validated using integrity checks, constraint verification, and comprehensive testing queries to confirm correct data relationships and business rule enforcement.*
+
+---
+
+
 
 
 
