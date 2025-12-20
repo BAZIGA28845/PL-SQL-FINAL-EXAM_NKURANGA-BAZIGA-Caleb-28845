@@ -3,8 +3,12 @@
 ### **Smart Inventory Expiry Alert System**
 
 **Student Name:** NKURANGA BAZIGA Caleb
+
 **Student ID:** 28845
+
 **Course:** Database Development with PL/SQL (INSY 8311)
+
+**LECTURER:** ERIC MANIRAGUHA
 
 ---
 
@@ -44,7 +48,7 @@ Many businesses in Rwanda rely on manual inspection of expiry labels, which is t
 
 * **Database:** Oracle 19c / 21c
 * **Language:** PL/SQL
-* **Tools:** SQL Developer, Git
+* **Tools:** SQL Developer, Github,BPMN IO
 
 
 ## 📂 Project Implementation Roadmap
@@ -133,7 +137,9 @@ The system ensures:
 * Data-driven decision support
 
 ---
-
+✨ FINAL MESSAGE
+> "Whatever you do, work at it with all your heart, as working for the Lord, not for human masters."  
+> — Colossians 3:23 (NIV)
 
 
 
