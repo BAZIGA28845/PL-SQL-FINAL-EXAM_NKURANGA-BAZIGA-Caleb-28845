@@ -570,7 +570,112 @@ CREATE INDEX idx_expired_batch
 ON expired_stock(batch_id)
 TABLESPACE SIEAS_INDEX;
 
-
-
-
 ```
+### insering data
+----**inserting 150 data in users**
+<img width="960" height="502" alt="INSERTING DATA INTO USER" src="https://github.com/user-attachments/assets/36ebb76b-fd24-4a76-bea7-ef43df0eecd5" />
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Mugisha Jean Claude', 'manager', '0788112233', 'jean.mugisha@gmail.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Uwimana Aline Grace', 'admin', '0733445566', 'aline.uwimana@icloud.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Niyonzima Eric', 'staff', '0722334455', 'eric.niyonzima@yahoo.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Mukamana Chantal', 'staff', NULL, 'chantal.mukamana@gmail.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Habimana Patrick', 'manager', '0789001122', 'patrick.habimana@outlook.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Nkurunziza Emmanuel', 'staff', '0733110099', 'emmanuel.nkurunziza@gmail.com');
+
+----**inserting data in product table**----
+<img width="959" height="503" alt="inserting data in product " src="https://github.com/user-attachments/assets/da31e7dd-c0bd-4d66-b92a-44cf31cd5f3f" />
+
+INSERT INTO product (name, category, unit_price)
+VALUES ('Akabanga Chilli Oil 100ml', 'Food Oil', 1500);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Nootri Family Cereal 500g', 'Cereal', 2500);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Amata Y’Inka 1L', 'Dairy', 1200);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Panadol Tablets 500mg', 'Medicine', 100);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Soya Minced Meat 1kg', 'Protein', 1800);
+
+INSERT INTO product (name, category, unit_price)
+VALUES ('Colgate Toothpaste 100ml', 'Cosmetics', 900);
+
+----**INSERTING DATA IN BATCH**----
+A batch represents a specific production lot of a product with its own manufacture date, expiry date, and quantity.
+<img width="959" height="501" alt="INSERTING DATA IN BATCH" src="https://github.com/user-attachments/assets/ef147f13-c575-4b8f-a547-f767cb78fa22" />
+
+-- EXPIRED batch
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+SELECT product_id,
+       TRUNC(SYSDATE) - 400,
+       TRUNC(SYSDATE) - 30,
+       80
+FROM product
+WHERE name LIKE 'Akabanga%';
+
+-- EXPIRING SOON (within 7 days)
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+SELECT product_id,
+       TRUNC(SYSDATE) - 200,
+       TRUNC(SYSDATE) + 3,
+       120
+FROM product
+WHERE name LIKE 'Nootri%';
+
+-- VALID long-term batch
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+SELECT product_id,
+       TRUNC(SYSDATE) - 10,
+       TRUNC(SYSDATE) + 365,
+       500
+FROM product
+WHERE name LIKE 'Soya%';
+
+COMMIT;
+Here is a **short, clean README section** you can copy directly 👇
+(Simple, professional, and exam-ready)
+
+---
+
+## 📌 Inserting Data for EXPIRY_ALERT and EXPIRED_STOCK
+
+In normal system operation, data is **not inserted manually** into the `EXPIRY_ALERT` and `EXPIRED_STOCK` tables.
+These tables are populated **automatically by database logic** based on product expiry conditions.
+
+### 🔹 EXPIRY_ALERT
+<img width="960" height="505" alt="DATA IN EXPIRT_ALERTS" src="https://github.com/user-attachments/assets/26ace325-452b-4cc2-b728-bf59e995be67" />
+
+Records are generated when a batch is **near expiry** (e.g., within 7 days).
+
+```sql
+INSERT INTO expiry_alert (batch_id, alert_date, message)
+SELECT batch_id, SYSDATE, 'Batch nearing expiry'
+FROM batch
+WHERE expiry_date BETWEEN SYSDATE AND SYSDATE + 7;
+```
+
+### 🔹 EXPIRED_STOCK
+<img width="960" height="506" alt="EXPIRED STOCK TABLE DATA" src="https://github.com/user-attachments/assets/5e44f9b2-7c7d-41e0-bbd3-4522b8fbb254" />
+
+Records are generated when a batch is **already expired**.
+
+```sql
+INSERT INTO expired_stock (batch_id, expired_on)
+SELECT batch_id, SYSDATE
+FROM batch
+WHERE expiry_date < SYSDATE;
+```
+
+
+
+
