@@ -636,8 +636,7 @@ FROM product
 WHERE name LIKE 'Soya%';
 
 COMMIT;
-Here is a **short, clean README section** you can copy directly 👇
-(Simple, professional, and exam-ready)
+
 
 ---
 
