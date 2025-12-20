@@ -977,6 +977,284 @@ WHERE processed = 'N';
 > *All tables were successfully validated using integrity checks, constraint verification, and comprehensive testing queries to confirm correct data relationships and business rule enforcement.*
 
 ---
+## **PHASE VI – Logging, Procedures, Functions & Package**
+
+---
+
+## **1️⃣ Error Log Table**
+<img width="946" height="275" alt="z create error log table" src="https://github.com/user-attachments/assets/2170098b-973b-41d2-bcc5-6e88c7c9e600" />
+
+**Purpose:** Stores errors that occur inside procedures for debugging and auditing.
+
+```sql
+CREATE TABLE error_log (
+    error_id       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    error_date     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    procedure_name VARCHAR2(100),
+    error_message  VARCHAR2(4000),
+    error_code     NUMBER,
+    username       VARCHAR2(50)
+) TABLESPACE SIEAS_DATA;
+```
+
+---
+
+## **2️⃣ Procedures (Business Operations)**
+<img width="960" height="506" alt="z adjustbatchquantity in and out" src="https://github.com/user-attachments/assets/40617d48-3613-4e45-b062-863141e8858e" />
+
+### **Adjust Batch Quantity (IN OUT)**
+
+**Purpose:** Updates batch quantity and returns the new quantity. Logs error if batch doesn’t exist.
+
+```sql
+CREATE OR REPLACE PROCEDURE adjust_batch_quantity (
+    p_batch_id IN VARCHAR2,
+    p_change   IN OUT NUMBER
+) IS
+    v_current_qty NUMBER;
+BEGIN
+    SELECT quantity INTO v_current_qty
+    FROM batch WHERE batch_id = p_batch_id;
+
+    UPDATE batch
+    SET quantity = v_current_qty + p_change
+    WHERE batch_id = p_batch_id;
+
+    p_change := v_current_qty + p_change;
+    COMMIT;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        INSERT INTO error_log
+        VALUES (DEFAULT, CURRENT_TIMESTAMP,
+                'adjust_batch_quantity',
+                'Batch not found', -20002, USER);
+END;
+/
+```
+
+---
+
+### **Add Product**
+<img width="960" height="503" alt="z add_product" src="https://github.com/user-attachments/assets/5f71b299-b5b6-44c4-8627-756b2ff650e9" />
+
+**Purpose:** Inserts a new product and logs any unexpected error.
+
+```sql
+CREATE OR REPLACE PROCEDURE add_product (
+    p_name       IN VARCHAR2,
+    p_category   IN VARCHAR2,
+    p_unit_price IN NUMBER
+) IS
+    v_product_id VARCHAR2(36);
+BEGIN
+    v_product_id := uuid();
+
+    INSERT INTO product
+    VALUES (v_product_id, p_name, p_category, p_unit_price);
+
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        INSERT INTO error_log
+        VALUES (DEFAULT, CURRENT_TIMESTAMP,
+                'add_product',
+                SQLERRM, SQLCODE,
+                SYS_CONTEXT('USERENV','SESSION_USER'));
+END;
+/
+```
+
+---
+
+### **Delete Processed Alerts**
+<img width="960" height="505" alt="z Delete Processed Alerts (IN parameter)" src="https://github.com/user-attachments/assets/98d2d8ff-76ad-40b2-b849-7ecfb4a702a3" />
+
+**Purpose:** Removes processed expiry alerts and returns how many were deleted.
+
+```sql
+CREATE OR REPLACE PROCEDURE delete_processed_alerts (
+    p_deleted OUT NUMBER
+) IS
+BEGIN
+    DELETE FROM expiry_alert WHERE processed = 'Y';
+    p_deleted := SQL%ROWCOUNT;
+    COMMIT;
+END;
+/
+```
+
+---
+
+## **3️⃣ Functions (Validation & Lookup)**
+
+### **Email Validation**
+<img width="960" height="503" alt="z Email Validation Function" src="https://github.com/user-attachments/assets/748e9c62-70fc-4294-bb3f-500473aa06f3" />
+
+**Purpose:** Checks if an email format is valid.
+
+```sql
+CREATE OR REPLACE FUNCTION is_valid_email (
+    p_email IN VARCHAR2
+) RETURN BOOLEAN IS
+BEGIN
+    RETURN REGEXP_LIKE(
+        p_email,
+        '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+    );
+END;
+/
+```
+
+---
+
+### **Get Product Name by Batch**
+
+**Purpose:** Returns product name linked to a batch.
+
+```sql
+CREATE OR REPLACE FUNCTION get_product_name (
+    p_batch_id IN VARCHAR2
+) RETURN VARCHAR2 IS
+    v_name VARCHAR2(120);
+BEGIN
+    SELECT p.name INTO v_name
+    FROM product p JOIN batch b
+    ON p.product_id = b.product_id
+    WHERE b.batch_id = p_batch_id;
+
+    RETURN v_name;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN RETURN NULL;
+END;
+/
+```
+
+---
+
+### **Total Stock per Product**
+<img width="960" height="504" alt="z Calculate Total Stock per Product" src="https://github.com/user-attachments/assets/211fb620-c05d-492e-8b8f-92bdf3148a8b" />
+
+**Purpose:** Calculates total quantity of all batches for a product.
+
+```sql
+CREATE OR REPLACE FUNCTION total_stock (
+    p_product_id IN VARCHAR2
+) RETURN NUMBER IS
+    v_total NUMBER;
+BEGIN
+    SELECT SUM(quantity) INTO v_total
+    FROM batch WHERE product_id = p_product_id;
+
+    RETURN NVL(v_total, 0);
+END;
+/
+```
+
+---
+
+## **4️⃣ Analytical (Window) Queries**
+
+### **Rank Products by Stock**
+
+**Purpose:** Ranks products based on total stock quantity.
+
+```sql
+SELECT p.name,
+       SUM(b.quantity) total_qty,
+       RANK() OVER (ORDER BY SUM(b.quantity) DESC) rank_no
+FROM product p JOIN batch b
+ON p.product_id = b.product_id
+GROUP BY p.name;
+```
+
+---
+
+### **Batch Expiry Order**
+
+**Purpose:** Orders batches by expiry date per product.
+
+```sql
+SELECT product_id, batch_id, expiry_date,
+       ROW_NUMBER() OVER
+       (PARTITION BY product_id ORDER BY expiry_date) seq
+FROM batch;
+```
+
+---
+
+### **Expiry Gap Analysis**
+
+**Purpose:** Shows number of days between batch expiry dates.
+
+```sql
+SELECT batch_id, expiry_date,
+       expiry_date -
+       LAG(expiry_date) OVER (ORDER BY expiry_date) gap_days
+FROM batch;
+```
+
+---
+
+## **5️⃣ Inventory Package**
+
+**Purpose:** Groups inventory operations into one reusable unit.
+
+### **Package Specification**
+
+```sql
+CREATE OR REPLACE PACKAGE inventory_pkg IS
+    PROCEDURE generate_alerts;
+    PROCEDURE expire_batches;
+    FUNCTION product_stock (p_product_id VARCHAR2) RETURN NUMBER;
+END inventory_pkg;
+/
+```
+
+---
+
+### **Package Body**
+
+```sql
+CREATE OR REPLACE PACKAGE BODY inventory_pkg IS
+
+    PROCEDURE generate_alerts IS
+    BEGIN
+        generate_expiry_alerts;
+    END;
+
+    PROCEDURE expire_batches IS
+    BEGIN
+        move_expired_stock;
+    END;
+
+    FUNCTION product_stock (p_product_id VARCHAR2)
+    RETURN NUMBER IS
+    BEGIN
+        RETURN total_stock(p_product_id);
+    END;
+
+END inventory_pkg;
+/
+```
+
+---
+
+## **6️⃣ Testing**
+
+**Purpose:** Verifies that the package works correctly.
+
+```sql
+EXEC inventory_pkg.generate_alerts;
+EXEC inventory_pkg.expire_batches;
+
+SELECT inventory_pkg.product_stock(product_id)
+FROM product;
+```
+
+---
+
 
 
 
