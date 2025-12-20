@@ -87,7 +87,7 @@ This approach improves data accuracy, reduces duplication, and simplifies mainte
 
 ---
 
-## **Constraint Summary **
+## **Constraint Summary**
 
 * **Primary Keys (PK):** Ensure row uniqueness
 * **Foreign Keys (FK):** Enforce referential integrity
