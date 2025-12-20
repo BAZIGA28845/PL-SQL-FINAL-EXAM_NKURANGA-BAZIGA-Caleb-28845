@@ -49,16 +49,16 @@ Many businesses in Rwanda rely on manual inspection of expiry labels, which is t
 
 ## 📂 Project Implementation Roadmap
 
-| Phase          | Description                                                                               | ROAD MAP TO REACHE OUT ON PHASE            |
+| Phase          | Description                                                                               | ROAD MAP TO REACH OUT ON PHASE             |
 | -------------- | ----------------------------------------------------------------------------------------- |--------------------------------------------|
-| **Phase I**    | Identification of the problem domain and presentation of the project proposal             | [PHASEI](PHASEI.md)                        |
-| **Phase II**   | Modeling of business processes using UML/BPMN diagrams with supporting explanation        | [PHASEII](PHASEI.md)                       | 
-| **Phase III**  | Design of the logical database model including ER diagrams and a data dictionary          | [PHASEIII](PHASEI.md)                      |
-| **Phase IV**   | Creation and configuration of the Oracle Pluggable Database (PDB)                         | [PHASEIV](PHASEI.md)                       |
-| **Phase V**    | Physical table implementation with constraints and insertion of realistic test data       | [PHASEV](PHASEI.md)                        |
-| **Phase VI**   | Development of PL/SQL components including procedures, functions, packages, and cursors   | [PHASEvI](PHASEI.md)                       |
-| **Phase VII**  | Implementation of advanced PL/SQL features such as triggers, business rules, and auditing | [PHASEVII](PHASEI.md)                      |
-| **Phase VIII** | Final documentation, Business Intelligence analysis, and project presentation             | [PHASEVIII](PHASEI.md)                     |
+| **Phase I**    | Identification of the problem domain and presentation of the project proposal             |[PHASEI](PHASEI.md)                         |
+| **Phase II**   | Modeling of business processes using UML/BPMN diagrams with supporting explanation        |[PHASEII](PHASEII.md)                       | 
+| **Phase III**  | Design of the logical database model including ER diagrams and a data dictionary          |[PHASEIII](PHASEIII.md)                     |
+| **Phase IV**   | Creation and configuration of the Oracle Pluggable Database (PDB)                         |[PHASEIV](PHASEIV.md)                       |
+| **Phase V**    | Physical table implementation with constraints and insertion of realistic test data       |[PHASEV](PHASEV.md)                         |
+| **Phase VI**   | Development of PL/SQL components including procedures, functions, packages, and cursors   |[PHASEVI](PHASEVI.md)                       |
+| **Phase VII**  | Implementation of advanced PL/SQL features such as triggers, business rules, and auditing |[PHASEVII](PHASEVII.md)                     |
+| **Phase VIII** | Final documentation, Business Intelligence analysis, and project presentation             |[PHASEVIII](PHASEVIII.md)                   |
 
 
 Below is a **short, clear summary of every phase**, written in **simple language**, perfect for **final report conclusion, README, or exam revision**.
