@@ -425,13 +425,7 @@ ALTER DATABASE TEMPFILE '...sieas_temp01.dbf' AUTOEXTEND ON NEXT 50M MAXSIZE UNL
 ✔ Enabled autoextend for scalability
 
 ---
-Perfect — thanks for the clarification 👍
-Below is a **READY-TO-PASTE GitHub README section** that:
 
-✔ Follows the **exact order you worked in**
-✔ Includes the **actual SQL code you used**
-✔ Clearly explains **what each part does**
-✔ Matches **academic + practical expectations**
 
 ---
 
@@ -1188,6 +1182,7 @@ FROM batch;
 ---
 
 ### **Expiry Gap Analysis**
+<img width="957" height="502" alt="z Expiry Trend Comparison (LAG" src="https://github.com/user-attachments/assets/a8e64eba-2327-427d-a021-f3a86974ee6f" />
 
 **Purpose:** Shows number of days between batch expiry dates.
 
@@ -1203,6 +1198,7 @@ FROM batch;
 ## **5️⃣ Inventory Package**
 
 **Purpose:** Groups inventory operations into one reusable unit.
+<img width="958" height="504" alt="z Package Specification" src="https://github.com/user-attachments/assets/94376106-3e48-47a3-b6f5-fe9bbf73cf64" />
 
 ### **Package Specification**
 
@@ -1216,6 +1212,7 @@ END inventory_pkg;
 ```
 
 ---
+<img width="958" height="505" alt="z Package Body" src="https://github.com/user-attachments/assets/3d5e3ffe-a932-449a-ad98-e817bf75f492" />
 
 ### **Package Body**
 
