@@ -1,0 +1,1476 @@
+-----CREATING TABLES
+
+CREATE TABLE product (
+  product_id     VARCHAR2(36) PRIMARY KEY,
+  name           VARCHAR2(120) NOT NULL UNIQUE,
+  category       VARCHAR2(60),
+  unit_price     NUMBER(10,2) DEFAULT 0 NOT NULL,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) TABLESPACE SIEAS_DATA;
+
+
+CREATE INDEX idx_product_category 
+ON product(category)
+TABLESPACE SIEAS_INDEX;
+
+
+CREATE TABLE users (
+  user_id      VARCHAR2(36) PRIMARY KEY,
+  full_name    VARCHAR2(120) NOT NULL,
+  role         VARCHAR2(30) CHECK(role IN ('admin','manager','staff')),
+  phone        VARCHAR2(20),
+  email        VARCHAR2(120) UNIQUE,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_users_role 
+ON users(role) TABLESPACE SIEAS_INDEX;
+
+
+CREATE TABLE batch (
+  batch_id         VARCHAR2(36) PRIMARY KEY,
+  product_id       VARCHAR2(36) NOT NULL,
+  manufacture_date DATE NOT NULL,
+  expiry_date      DATE NOT NULL,
+  quantity         NUMBER(10) NOT NULL CHECK (quantity >= 0),
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_batch_product 
+      FOREIGN KEY (product_id) REFERENCES product(product_id),
+  CONSTRAINT chk_dates CHECK (expiry_date > manufacture_date)
+) TABLESPACE SIEAS_DATA;
+CREATE INDEX idx_batch_product ON batch(product_id) TABLESPACE SIEAS_INDEX;
+CREATE INDEX idx_batch_expiry  ON batch(expiry_date) TABLESPACE SIEAS_INDEX;
+
+CREATE TABLE expiry_alert (
+  alert_id    VARCHAR2(36) PRIMARY KEY,
+  batch_id    VARCHAR2(36) NOT NULL,
+  alert_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  message     VARCHAR2(400) NOT NULL,
+  processed   CHAR(1) DEFAULT 'N' CHECK (processed IN ('Y','N')),
+  CONSTRAINT fk_alert_batch 
+      FOREIGN KEY (batch_id) REFERENCES batch(batch_id)
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_alert_batch ON expiry_alert(batch_id) TABLESPACE SIEAS_INDEX;
+CREATE INDEX idx_alert_date  ON expiry_alert(alert_date) TABLESPACE SIEAS_INDEX;
+
+
+CREATE INDEX idx_alert_batch ON expiry_alert(batch_id) TABLESPACE SIEAS_INDEX;
+CREATE INDEX idx_alert_date  ON expiry_alert(alert_date) TABLESPACE SIEAS_INDEX;
+SHOW CON_NAME;
+
+CREATE INDEX idx_alert_date  
+ON expiry_alert(alert_date) 
+TABLESPACE SIEAS_INDEX;
+
+
+
+SHOW USER;
+CREATE INDEX idx_alert_date2  
+ON expiry_alert(alert_date) 
+TABLESPACE SIEAS_INDEX;
+DROP INDEX idx_alert_date;
+
+
+CREATE TABLE expired_stock (
+  expired_id  VARCHAR2(36) PRIMARY KEY,
+  batch_id    VARCHAR2(36) NOT NULL,
+  expired_on  DATE DEFAULT TRUNC(SYSDATE),
+  note        VARCHAR2(300),
+  CONSTRAINT fk_expired_batch 
+      FOREIGN KEY (batch_id) REFERENCES batch(batch_id)
+) TABLESPACE SIEAS_DATA;
+
+CREATE INDEX idx_expired_batch 
+ON expired_stock(batch_id)
+TABLESPACE SIEAS_INDEX;
+
+
+CREATE OR REPLACE TRIGGER trg_batch_bi
+BEFORE INSERT ON batch
+FOR EACH ROW
+BEGIN
+  IF :new.batch_id IS NULL THEN
+     :new.batch_id := uuid();
+  END IF;
+  IF :new.created_at IS NULL THEN
+     :new.created_at := CURRENT_TIMESTAMP;
+  END IF;
+END;
+/
+CREATE OR REPLACE TRIGGER trg_expired_bi
+BEFORE INSERT ON expired_stock
+FOR EACH ROW
+BEGIN
+  IF :new.expired_id IS NULL THEN
+     :new.expired_id := uuid();
+  END IF;
+  IF :new.expired_on IS NULL THEN
+     :new.expired_on := TRUNC(SYSDATE);
+  END IF;
+END;
+/
+
+ALTER SESSION SET CURRENT_SCHEMA = CALEB;
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Mugisha Nkuranga', 'manager', '0780111111', 'mugisha.n@example.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Mugabe Muneza', 'staff', '0780222222', 'mugabe.m@example.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Murenzi Ngabo', 'staff', '0780333333', 'murenzi.n@example.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Uwase Benitha', 'admin', '0780444444', 'uwase.b@example.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Habimana Eric', 'manager', '0780555555', 'habimana.e@example.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Ndayishimiye Patrick', 'staff', '0780666666', 'ndayishimiye.p@example.com');
+
+COMMIT;
+
+INSERT INTO product (name, category, unit_price) VALUES ('Akabanga Oil 100ml', 'Food Oil', 1500);
+INSERT INTO product (name, category, unit_price) VALUES ('Nootri Family Cereal', 'Cereal', 2500);
+INSERT INTO product (name, category, unit_price) VALUES ('Amata Y''Inka 1L', 'Dairy', 1200);
+INSERT INTO product (name, category, unit_price) VALUES ('Panadol 500mg', 'Medicine', 100);
+INSERT INTO product (name, category, unit_price) VALUES ('Soya Minced Meat', 'Protein', 1800);
+INSERT INTO product (name, category, unit_price) VALUES ('Colgate Toothpaste', 'Cosmetics', 900);
+COMMIT;
+
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+VALUES (
+ (SELECT product_id FROM product WHERE name='Akabanga Oil 100ml'),
+ TRUNC(SYSDATE) - 600,
+ TRUNC(SYSDATE) - 40,
+ 80
+);
+
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+VALUES (
+ (SELECT product_id FROM product WHERE name='Nootri Family Cereal'),
+ TRUNC(SYSDATE) - 400,
+ TRUNC(SYSDATE) - 5,
+ 120
+);
+
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+VALUES (
+ (SELECT product_id FROM product WHERE name='Amata Y''Inka 1L'),
+ TRUNC(SYSDATE) - 20,
+ TRUNC(SYSDATE) + 2,
+ 60
+);
+
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+VALUES (
+ (SELECT product_id FROM product WHERE name='Panadol 500mg'),
+ TRUNC(SYSDATE) - 200,
+ TRUNC(SYSDATE) + 5,
+ 200
+);
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+VALUES (
+ (SELECT product_id FROM product WHERE name='Soya Minced Meat'),
+ TRUNC(SYSDATE) - 10,
+ TRUNC(SYSDATE) + 365,
+ 500
+);
+
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+VALUES (
+ (SELECT product_id FROM product WHERE name='Colgate Toothpaste'),
+ TRUNC(SYSDATE) - 50,
+ TRUNC(SYSDATE) + 700,
+ 150
+);
+
+COMMIT;
+
+INSERT INTO expiry_alert (batch_id, message)
+SELECT batch_id,
+       'Product is expiring in ' || (expiry_date - TRUNC(SYSDATE)) || ' day(s).'
+FROM batch
+WHERE expiry_date BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) + 7;
+
+COMMIT;
+INSERT INTO expired_stock (batch_id, note)
+SELECT batch_id, 'Expired before check'
+FROM batch
+WHERE expiry_date < TRUNC(SYSDATE);
+
+COMMIT;
+
+INSERT INTO expiry_alert (batch_id, message)
+SELECT batch_id,
+       'Product is expiring in ' || (expiry_date - TRUNC(SYSDATE)) || ' day(s).'
+FROM batch
+WHERE expiry_date BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) + 7;
+
+SELECT COUNT(*) AS users FROM users;
+SELECT COUNT(*) AS products FROM product;
+SELECT COUNT(*) AS batches FROM batch;
+SELECT COUNT(*) AS alerts FROM expiry_alert;
+SELECT COUNT(*) AS expired FROM expired_stock;
+
+SELECT 'PRODUCT', COUNT(*) FROM product
+UNION ALL
+SELECT 'BATCH', COUNT(*) FROM batch
+UNION ALL
+SELECT 'USERS', COUNT(*) FROM users
+UNION ALL
+SELECT 'EXPIRY_ALERT', COUNT(*) FROM expiry_alert
+UNION ALL
+SELECT 'EXPIRED_STOCK', COUNT(*) FROM expired_stock;
+
+CREATE OR REPLACE FUNCTION uuid RETURN VARCHAR2 IS
+  v RAW(16) := SYS_GUID();
+  h VARCHAR2(32) := RAWTOHEX(v);
+BEGIN
+  RETURN LOWER(
+    SUBSTR(h,1,8)||'-'||SUBSTR(h,9,4)||'-'||
+    SUBSTR(h,13,4)||'-'||SUBSTR(h,17,4)||'-'||SUBSTR(h,21)
+  );
+END;
+/
+CREATE OR REPLACE TRIGGER trg_alert_bi
+BEFORE INSERT ON expiry_alert
+FOR EACH ROW
+BEGIN
+  IF :new.alert_id IS NULL THEN
+     :new.alert_id := uuid();
+  END IF;
+
+  IF :new.alert_date IS NULL THEN
+     :new.alert_date := CURRENT_TIMESTAMP;
+  END IF;
+END;
+/
+INSERT INTO expiry_alert (batch_id, message)
+SELECT batch_id,
+       'Product is expiring in ' || (expiry_date - TRUNC(SYSDATE)) || ' day(s).'
+FROM batch
+WHERE expiry_date BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) + 7;
+SELECT 'EXPIRY_ALERT', COUNT(*) FROM expiry_alert;
+
+SELECT 'PRODUCT', COUNT(*) FROM product
+UNION ALL
+SELECT 'BATCH', COUNT(*) FROM batch
+UNION ALL
+SELECT 'USERS', COUNT(*) FROM users
+UNION ALL
+SELECT 'EXPIRY_ALERT', COUNT(*) FROM expiry_alert
+UNION ALL
+SELECT 'EXPIRED_STOCK', COUNT(*) FROM expired_stock;
+
+SELECT COUNT(*) FROM product WHERE product_id IS NULL;
+SELECT COUNT(*) FROM batch WHERE batch_id IS NULL;
+SELECT COUNT(*) FROM users WHERE user_id IS NULL;
+SELECT COUNT(*) FROM expiry_alert WHERE alert_id IS NULL;
+SELECT b.batch_id
+FROM batch b
+LEFT JOIN product p ON b.product_id = p.product_id
+WHERE p.product_id IS NULL;
+
+SELECT b.batch_id
+FROM batch b
+LEFT JOIN product p ON b.product_id = p.product_id
+WHERE p.product_id IS NULL;
+
+SELECT a.alert_id
+FROM expiry_alert a
+LEFT JOIN batch b ON a.batch_id = b.batch_id
+WHERE b.batch_id IS NULL;
+
+SELECT email, COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+SELECT table_name FROM user_tables;
+SELECT * FROM expired_stock;
+CREATE OR REPLACE FUNCTION get_days_to_expiry (
+  p_batch_id IN VARCHAR2
+) RETURN NUMBER IS
+  v_days NUMBER;
+BEGIN
+  SELECT expiry_date - TRUNC(SYSDATE)
+  INTO v_days
+  FROM batch
+  WHERE batch_id = p_batch_id;
+
+  RETURN v_days;
+
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    RETURN NULL;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE generate_expiry_alerts IS
+BEGIN
+  INSERT INTO expiry_alert (batch_id, message)
+  SELECT batch_id,
+         'Product is expiring in ' ||
+         (expiry_date - TRUNC(SYSDATE)) || ' day(s).'
+  FROM batch
+  WHERE expiry_date BETWEEN TRUNC(SYSDATE)
+                        AND TRUNC(SYSDATE) + 7;
+
+  COMMIT;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE move_expired_stock IS
+BEGIN
+  INSERT INTO expired_stock (batch_id, note)
+  SELECT batch_id, 'Automatically marked as expired'
+  FROM batch
+  WHERE expiry_date < TRUNC(SYSDATE)
+  AND batch_id NOT IN (
+      SELECT batch_id FROM expired_stock
+  );
+
+  COMMIT;
+END;
+/
+CREATE OR REPLACE PROCEDURE inventory_summary IS
+  CURSOR c_batches IS
+    SELECT b.batch_id, p.name, b.quantity, b.expiry_date
+    FROM batch b
+    JOIN product p ON b.product_id = p.product_id;
+
+  v_rec c_batches%ROWTYPE;
+BEGIN
+  OPEN c_batches;
+  LOOP
+    FETCH c_batches INTO v_rec;
+    EXIT WHEN c_batches%NOTFOUND;
+
+    DBMS_OUTPUT.PUT_LINE(
+      'Batch: ' || v_rec.batch_id ||
+      ' | Product: ' || v_rec.name ||
+      ' | Qty: ' || v_rec.quantity ||
+      ' | Expiry: ' || v_rec.expiry_date
+    );
+  END LOOP;
+  CLOSE c_batches;
+END;
+/
+CREATE OR REPLACE PROCEDURE update_batch_quantity (
+  p_batch_id IN VARCHAR2,
+  p_quantity IN NUMBER
+) IS
+BEGIN
+  UPDATE batch
+  SET quantity = p_quantity
+  WHERE batch_id = p_batch_id;
+
+  IF SQL%ROWCOUNT = 0 THEN
+    RAISE_APPLICATION_ERROR(-20001, 'Batch not found');
+  END IF;
+
+  COMMIT;
+END;
+/
+EXEC generate_expiry_alerts;
+EXEC move_expired_stock;
+EXEC inventory_summary;
+
+SELECT get_days_to_expiry(batch_id) FROM batch;
+SELECT sys_context('USERENV','CON_NAME') FROM dual;
+
+DELETE FROM EXPIRY_ALERT;
+DELETE FROM EXPIRED_STOCK;
+DELETE FROM BATCH;
+DELETE FROM PRODUCT;
+DELETE FROM USERS;
+
+COMMIT;
+
+----inserting that in users
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Mugisha Jean Claude', 'manager', '0788112233', 'jean.mugisha@gmail.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Uwimana Aline Grace', 'admin', '0733445566', 'aline.uwimana@icloud.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Niyonzima Eric', 'staff', '0722334455', 'eric.niyonzima@yahoo.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Mukamana Chantal', 'staff', NULL, 'chantal.mukamana@gmail.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Habimana Patrick', 'manager', '0789001122', 'patrick.habimana@outlook.com');
+
+INSERT INTO users (full_name, role, phone, email)
+VALUES ('Nkurunziza Emmanuel', 'staff', '0733110099', 'emmanuel.nkurunziza@gmail.com');
+
+BEGIN
+  FOR i IN 1..150 LOOP
+    INSERT INTO users (full_name, role, phone, email)
+    VALUES (
+      CASE MOD(i,5)
+        WHEN 0 THEN 'Mukamana Alice'
+        WHEN 1 THEN 'Niyonzima Paul'
+        WHEN 2 THEN 'Habimana Eric'
+        WHEN 3 THEN 'Uwase Clarisse'
+        ELSE        'Mugabo Samuel'
+      END || ' ' || i,
+
+      CASE MOD(i,3)
+        WHEN 0 THEN 'staff'
+        WHEN 1 THEN 'manager'
+        ELSE        'staff'
+      END,
+
+      CASE
+        WHEN MOD(i,10) = 0 THEN NULL
+        ELSE '078' || LPAD(i,7,'0')
+      END,
+
+      LOWER(
+        REPLACE(
+          SUBSTR(
+            CASE MOD(i,5)
+              WHEN 0 THEN 'Mukamana Alice'
+              WHEN 1 THEN 'Niyonzima Paul'
+              WHEN 2 THEN 'Habimana Eric'
+              WHEN 3 THEN 'Uwase Clarisse'
+              ELSE        'Mugabo Samuel'
+            END,
+            1,
+            INSTR(
+              CASE MOD(i,5)
+                WHEN 0 THEN 'Mukamana Alice'
+                WHEN 1 THEN 'Niyonzima Paul'
+                WHEN 2 THEN 'Habimana Eric'
+                WHEN 3 THEN 'Uwase Clarisse'
+                ELSE        'Mugabo Samuel'
+              END,
+              ' '
+            ) - 1
+          ) || '.' ||
+          SUBSTR(
+            CASE MOD(i,5)
+              WHEN 0 THEN 'Mukamana Alice'
+              WHEN 1 THEN 'Niyonzima Paul'
+              WHEN 2 THEN 'Habimana Eric'
+              WHEN 3 THEN 'Uwase Clarisse'
+              ELSE        'Mugabo Samuel'
+            END,
+            INSTR(
+              CASE MOD(i,5)
+                WHEN 0 THEN 'Mukamana Alice'
+                WHEN 1 THEN 'Niyonzima Paul'
+                WHEN 2 THEN 'Habimana Eric'
+                WHEN 3 THEN 'Uwase Clarisse'
+                ELSE        'Mugabo Samuel'
+              END,
+              ' '
+            ) + 1
+          ) || i,
+          ' ',
+          ''
+        )
+        || CASE MOD(i,4)
+             WHEN 0 THEN '@gmail.com'
+             WHEN 1 THEN '@yahoo.com'
+             WHEN 2 THEN '@outlook.com'
+             ELSE        '@icloud.com'
+           END
+      )
+    );
+  END LOOP;
+  COMMIT;
+END;
+/
+COMMIT;
+SELECT * FROM users;
+
+COMMIT;
+
+-----inserting data in product table----
+
+INSERT INTO product (name, category, unit_price)
+VALUES ('Akabanga Chilli Oil 100ml', 'Food Oil', 1500);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Nootri Family Cereal 500g', 'Cereal', 2500);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Amata Y’Inka 1L', 'Dairy', 1200);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Panadol Tablets 500mg', 'Medicine', 100);
+INSERT INTO product (name, category, unit_price)
+VALUES ('Soya Minced Meat 1kg', 'Protein', 1800);
+
+INSERT INTO product (name, category, unit_price)
+VALUES ('Colgate Toothpaste 100ml', 'Cosmetics', 900);
+
+COMMIT;
+BEGIN
+  FOR i IN 1..150 LOOP
+    INSERT INTO product (name, category, unit_price)
+    VALUES (
+      CASE MOD(i,6)
+        WHEN 0 THEN 'Akabanga Chilli Oil'
+        WHEN 1 THEN 'Nootri Family Cereal'
+        WHEN 2 THEN 'Amata Y’Inka Milk'
+        WHEN 3 THEN 'Panadol Tablets'
+        WHEN 4 THEN 'Soya Minced Meat'
+        ELSE        'Colgate Toothpaste'
+      END || ' ' || i,
+
+      CASE MOD(i,6)
+        WHEN 0 THEN 'Food Oil'
+        WHEN 1 THEN 'Cereal'
+        WHEN 2 THEN 'Dairy'
+        WHEN 3 THEN 'Medicine'
+        WHEN 4 THEN 'Protein'
+        ELSE        'Cosmetics'
+      END,
+
+      CASE MOD(i,6)
+        WHEN 0 THEN 1500
+        WHEN 1 THEN 2500
+        WHEN 2 THEN 1200
+        WHEN 3 THEN 100
+        WHEN 4 THEN 1800
+        ELSE        900
+      END
+    );
+  END LOOP;
+
+  COMMIT;
+END;
+/
+SELECT * FROM PRODUCT;
+
+----INSERTING DATA IN BATCH----
+
+-- EXPIRED batch
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+SELECT product_id,
+       TRUNC(SYSDATE) - 400,
+       TRUNC(SYSDATE) - 30,
+       80
+FROM product
+WHERE name LIKE 'Akabanga%';
+
+-- EXPIRING SOON (within 7 days)
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+SELECT product_id,
+       TRUNC(SYSDATE) - 200,
+       TRUNC(SYSDATE) + 3,
+       120
+FROM product
+WHERE name LIKE 'Nootri%';
+
+-- VALID long-term batch
+INSERT INTO batch (product_id, manufacture_date, expiry_date, quantity)
+SELECT product_id,
+       TRUNC(SYSDATE) - 10,
+       TRUNC(SYSDATE) + 365,
+       500
+FROM product
+WHERE name LIKE 'Soya%';
+
+COMMIT;
+
+
+-- Total batches
+SELECT COUNT(*) FROM batch;
+
+-- Expired batches
+SELECT COUNT(*) FROM batch
+WHERE expiry_date < TRUNC(SYSDATE);
+
+-- Expiring within 7 days
+SELECT COUNT(*) FROM batch
+WHERE expiry_date BETWEEN TRUNC(SYSDATE)
+                      AND TRUNC(SYSDATE) + 7;
+
+-- Zero quantity edge case
+SELECT COUNT(*) FROM batch WHERE quantity = 0;
+  
+  --- SEEING DATA IN EXPIRT_ALERTS----
+EXEC generate_expiry_alerts;
+SELECT * FROM expiry_alert;
+
+-----SEEING DATA IN EXPIRED STOCK
+
+EXEC move_expired_stock;
+SELECT * FROM expired_stock;
+
+-----------------------------Data Completeness Checks----------------
+-----1Ensure primary keys are never NULL
+
+SELECT COUNT(*) AS null_product_ids
+FROM product
+WHERE product_id IS NULL;
+
+SELECT COUNT(*) AS null_batch_ids
+FROM batch
+WHERE batch_id IS NULL;
+
+SELECT COUNT(*) AS null_user_ids
+FROM users
+WHERE user_id IS NULL;
+
+SELECT COUNT(*) AS null_alert_ids
+FROM expiry_alert
+WHERE alert_id IS NULL;
+
+------------------------------2Constraint Enforcement Checks--
+----UNIQUE constraint (email)---
+SELECT email, COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+----role--
+SELECT *
+FROM users
+WHERE role NOT IN ('admin','manager','staff');
+
+-----CHECK constraint (quantity >= 0)---
+SELECT *
+FROM batch
+WHERE quantity < 0;
+
+---CHECK constraint (expiry_date > manufacture_date)---
+SELECT *
+FROM batch
+WHERE expiry_date <= manufacture_date;
+
+---------------------------3Foreign Key Integrity Checks--------
+---Batches without products (should not exist)----
+SELECT b.batch_id
+FROM batch b
+LEFT JOIN product p ON b.product_id = p.product_id
+WHERE p.product_id IS NULL;
+
+---Alerts without batches (should not exist)---
+SELECT a.alert_id
+FROM expiry_alert a
+LEFT JOIN batch b ON a.batch_id = b.batch_id
+WHERE b.batch_id IS NULL;
+
+----Expired stock without batches (should not exist)---
+
+SELECT e.expired_id
+FROM expired_stock e
+LEFT JOIN batch b ON e.batch_id = b.batch_id
+WHERE b.batch_id IS NULL;
+
+-----------------------------4.DEFAULT value validation-----------------
+--Auto timestamps populated-----
+
+SELECT COUNT(*)
+FROM batch
+WHERE created_at IS NULL;
+
+-----------------------------5.TESTING QUERIES----
+--- Basic Retrieval (SELECT *)------
+SELECT * FROM users FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM product FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM batch FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM expiry_alert FETCH FIRST 10 ROWS ONLY;
+SELECT * FROM expired_stock FETCH FIRST 10 ROWS ONLY;
+
+---------------------------6.JOIN Queries (Multi-table)-----
+---Products with batch details--
+SELECT p.name, b.batch_id, b.quantity, b.expiry_date
+FROM product p
+JOIN batch b ON p.product_id = b.product_id;
+
+----Expiry alerts with product names---
+SELECT p.name, a.message, a.alert_date
+FROM expiry_alert a
+JOIN batch b   ON a.batch_id = b.batch_id
+JOIN product p ON b.product_id = p.product_id;
+
+-------Expired stock report-----
+SELECT p.name, e.expired_on, e.note
+FROM expired_stock e
+JOIN batch b   ON e.batch_id = b.batch_id
+JOIN product p ON b.product_id = p.product_id;
+
+---------------------------------7.Aggregation Queries (GROUP BY)----
+
+---Number of users per role---
+SELECT role, COUNT(*) AS total_users
+FROM users
+GROUP BY role;
+
+-----Total quantity per product----
+SELECT p.name, SUM(b.quantity) AS total_quantity
+FROM product p
+JOIN batch b ON p.product_id = b.product_id
+GROUP BY p.name;
+
+---Expiring batches count---
+SELECT COUNT(*) AS expiring_soon
+FROM batch
+WHERE expiry_date BETWEEN TRUNC(SYSDATE)
+                      AND TRUNC(SYSDATE) + 7;
+                      
+                      
+------------------------8Subqueries (Advanced but expected)----
+----Products that have expired batches----
+SELECT name
+FROM product
+WHERE product_id IN (
+  SELECT product_id
+  FROM batch
+  WHERE expiry_date < TRUNC(SYSDATE)
+);
+
+-----Users who are managers---
+SELECT *
+FROM users
+WHERE role = (
+  SELECT DISTINCT role
+  FROM users
+  WHERE role = 'manager'
+);
+
+--------------------------------9Business Rule Validation Queries-------
+----Batches with zero stock (edge case)---
+SELECT *
+FROM batch
+WHERE quantity = 0;
+
+----Unprocessed alerts----
+SELECT *
+FROM expiry_alert
+WHERE processed = 'N';
+ 
+ -----------------create table log
+ 
+CREATE TABLE error_log (
+  error_id       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  error_date     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  procedure_name VARCHAR2(100),
+  error_message  VARCHAR2(4000),
+  error_code     NUMBER,
+  username       VARCHAR2(50)
+) TABLESPACE SIEAS_DATA;
+
+------------------ADD NEW PROCEDURES (IN / OUT / IN OUT)
+----adjust_batch_quantity
+CREATE OR REPLACE PROCEDURE adjust_batch_quantity (
+  p_batch_id IN VARCHAR2,
+  p_change   IN OUT NUMBER
+) IS
+  v_current NUMBER;
+BEGIN
+  SELECT quantity
+  INTO v_current
+  FROM batch
+  WHERE batch_id = p_batch_id;
+
+  UPDATE batch
+  SET quantity = v_current + p_change
+  WHERE batch_id = p_batch_id;
+
+  p_change := v_current + p_change;
+  COMMIT;
+
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    INSERT INTO error_log
+      (procedure_name, error_message, error_code, username)
+    VALUES
+      ('adjust_batch_quantity',
+       'Batch not found',
+       -20002,
+       USER);
+END;
+/
+-------add_product
+
+CREATE OR REPLACE PROCEDURE add_product (
+  p_name       IN VARCHAR2,
+  p_category   IN VARCHAR2,
+  p_unit_price IN NUMBER
+) IS
+  v_product_id VARCHAR2(36);
+  v_err_msg    VARCHAR2(4000);
+  v_err_code   NUMBER;
+  v_user       VARCHAR2(50);
+BEGIN
+  v_product_id := uuid();
+
+  INSERT INTO product (product_id, name, category, unit_price)
+  VALUES (v_product_id, p_name, p_category, p_unit_price);
+
+  COMMIT;
+
+EXCEPTION
+  WHEN OTHERS THEN
+    v_err_msg  := SQLERRM;
+    v_err_code := SQLCODE;
+    v_user     := SYS_CONTEXT('USERENV','SESSION_USER');
+
+    INSERT INTO error_log
+      (procedure_name, error_message, error_code, username)
+    VALUES
+      ('add_product',
+       v_err_msg,
+       v_err_code,
+       v_user);
+END;
+/
+--------------Delete Processed Alerts (IN parameter
+
+CREATE OR REPLACE PROCEDURE delete_processed_alerts (
+  p_deleted OUT NUMBER
+) IS
+BEGIN
+  DELETE FROM expiry_alert
+  WHERE processed = 'Y';
+
+  p_deleted := SQL%ROWCOUNT;
+  COMMIT;
+END;
+/
+
+-------------------------------3️⃣ ADD NEW FUNCTIONS (VALIDATION + LOOKUP)
+-----Email Validation Function
+CREATE OR REPLACE FUNCTION is_valid_email (
+  p_email IN VARCHAR2
+) RETURN BOOLEAN IS
+BEGIN
+  RETURN REGEXP_LIKE(p_email,
+         '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+END;
+/
+------Lookup Product Name by Batch
+CREATE OR REPLACE FUNCTION get_product_name (
+  p_batch_id IN VARCHAR2
+) RETURN VARCHAR2 IS
+  v_name VARCHAR2(120);
+BEGIN
+  SELECT p.name INTO v_name
+  FROM product p
+  JOIN batch b ON p.product_id = b.product_id
+  WHERE b.batch_id = p_batch_id;
+
+  RETURN v_name;
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    RETURN NULL;
+END;
+/
+------------------------Calculate Total Stock per Product
+CREATE OR REPLACE FUNCTION total_stock (
+  p_product_id IN VARCHAR2
+) RETURN NUMBER IS
+  v_total NUMBER;
+BEGIN
+  SELECT SUM(quantity)
+  INTO v_total
+  FROM batch
+  WHERE product_id = p_product_id;
+
+  RETURN NVL(v_total, 0);
+END;
+/
+-----------------------WINDOW FUNCTION QUERIES (ANALYTICS)
+-----Rank Products by Stock Quantity
+SELECT name,
+       SUM(quantity) AS total_qty,
+       RANK() OVER (ORDER BY SUM(quantity) DESC) AS rank_no
+FROM product p
+JOIN batch b ON p.product_id = b.product_id
+GROUP BY name;
+-----use dens rank
+SELECT p.name,
+       SUM(b.quantity) total_qty,
+       DENSE_RANK() OVER (ORDER BY SUM(b.quantity) DESC) dense_rank_no
+FROM product p
+JOIN batch b ON p.product_id = b.product_id
+GROUP BY p.name;
+
+
+----Batch Expiry Order
+
+SELECT product_id, batch_id, expiry_date,
+       ROW_NUMBER() OVER
+       (PARTITION BY product_id ORDER BY expiry_date) seq
+FROM batch;
+
+--------Expiry Gap Analysis
+
+SELECT batch_id, expiry_date,
+       expiry_date -
+       LAG(expiry_date) OVER (ORDER BY expiry_date) gap_days
+FROM batch;
+
+-------------testing
+
+EXEC inventory_pkg.generate_alerts;
+EXEC inventory_pkg.expire_batches;
+
+SELECT inventory_pkg.product_stock(product_id)
+FROM product;
+
+/* =========================================================
+   4️⃣ Analytical (Window) Queries
+   ========================================================= 
+
+-------------Rank Products by Stock
+   -----Purpose: Ranks products based on total stock quantity 
+SELECT p.name,
+       SUM(b.quantity) total_qty,
+       RANK() OVER (ORDER BY SUM(b.quantity) DESC) rank_no
+FROM product p JOIN batch b
+ON p.product_id = b.product_id
+GROUP BY p.name;
+
+/* Batch Expiry Order
+   Purpose: Orders batches by expiry date per product */
+SELECT product_id, batch_id, expiry_date,
+       ROW_NUMBER() OVER
+       (PARTITION BY product_id ORDER BY expiry_date) seq
+FROM batch;
+
+/* Expiry Gap Analysis
+   Purpose: Shows number of days between batch expiry dates */
+SELECT batch_id, expiry_date,
+       expiry_date -
+       LAG(expiry_date) OVER (ORDER BY expiry_date) gap_days
+FROM batch;
+
+
+/* =========================================================
+   5️⃣ Inventory Package
+   ========================================================= */
+
+/* Package Specification
+   Purpose: Groups inventory operations into one reusable unit */
+CREATE OR REPLACE PACKAGE inventory_pkg IS
+    PROCEDURE generate_alerts;
+    PROCEDURE expire_batches;
+    FUNCTION product_stock (p_product_id VARCHAR2) RETURN NUMBER;
+END inventory_pkg;
+/
+
+/* Package Body
+   Purpose: Implements the procedures and function declared above */
+CREATE OR REPLACE PACKAGE BODY inventory_pkg IS
+
+    /* Procedure to generate expiry alerts */
+    PROCEDURE generate_alerts IS
+    BEGIN
+        generate_expiry_alerts;
+    END;
+    
+ ------Package Specification
+ CREATE OR REPLACE PACKAGE inventory_pkg IS
+    PROCEDURE generate_alerts;
+    PROCEDURE expire_batches;
+    FUNCTION product_stock (p_product_id VARCHAR2) RETURN NUMBER;
+END inventory_pkg;
+/
+
+-------Package Body
+
+CREATE OR REPLACE PACKAGE BODY inventory_pkg IS
+
+    PROCEDURE generate_alerts IS
+    BEGIN
+        generate_expiry_alerts;
+    END;
+
+    PROCEDURE expire_batches IS
+    BEGIN
+        move_expired_stock;
+    END;
+
+    FUNCTION product_stock (p_product_id VARCHAR2)
+    RETURN NUMBER IS
+    BEGIN
+        RETURN total_stock(p_product_id);
+    END;
+
+END inventory_pkg;
+/
+
+------Testing 
+
+-- ========================================================
+-- Test 1: Check Error Log Table
+-- Purpose: Verify that errors are being recorded
+-- ========================================================
+SELECT * FROM error_log
+ORDER BY error_date DESC;
+
+
+-- ========================================================
+-- Test 2: Test add_product Procedure
+-- Purpose: Confirm a new product is inserted
+-- ========================================================
+EXEC add_product('Paracetamol', 'Medicine', 1200);
+
+SELECT * FROM product
+WHERE name = 'Paracetamol';
+
+
+-- ========================================================
+-- Test 3: Test adjust_batch_quantity Procedure
+-- Purpose: Increase or decrease batch quantity
+-- ========================================================
+DECLARE
+    v_new_qty NUMBER := 20;
+BEGIN
+    adjust_batch_quantity('BATCH001', v_new_qty);
+    DBMS_OUTPUT.PUT_LINE('New Quantity: ' || v_new_qty);
+END;
+/
+
+-- ========================================================
+-- Test 4: Test Invalid Batch (Error Logging)
+-- Purpose: Confirm error is logged when batch does not exist
+-- ========================================================
+DECLARE
+    v_qty NUMBER := 10;
+BEGIN
+    adjust_batch_quantity('INVALID_BATCH', v_qty);
+END;
+/
+
+SELECT * FROM error_log
+WHERE procedure_name = 'adjust_batch_quantity';
+
+
+-- ========================================================
+-- Test 5: Test delete_processed_alerts Procedure
+-- Purpose: Check how many processed alerts are removed
+-- ========================================================
+DECLARE
+    v_deleted NUMBER;
+BEGIN
+    delete_processed_alerts(v_deleted);
+    DBMS_OUTPUT.PUT_LINE('Deleted Alerts: ' || v_deleted);
+END;
+/
+
+-- ========================================================
+-- Test 6: Test Email Validation Function
+-- Purpose: Validate correct and incorrect emails
+-- ========================================================
+SELECT is_valid_email('user@gmail.com')   AS valid_email,
+       is_valid_email('user@@gmail.com') AS invalid_email
+FROM dual;
+
+
+-- ========================================================
+-- Test 7: Test get_product_name Function
+-- Purpose: Retrieve product name using batch ID
+-- ========================================================
+SELECT get_product_name('BATCH001') AS product_name
+FROM dual;
+
+
+-- ========================================================
+-- Test 8: Test total_stock Function
+-- Purpose: Calculate total stock for one product
+-- ========================================================
+SELECT total_stock(product_id) AS total_quantity
+FROM product;
+
+
+-- ========================================================
+-- Test 9: Test Package Function product_stock
+-- Purpose: Confirm package function works correctly
+-- ========================================================
+SELECT inventory_pkg.product_stock(product_id) AS stock
+FROM product;
+
+
+-- ========================================================
+-- Test 10: Verify Expired Batches Moved
+-- Purpose: Ensure expired batches are processed correctly
+-- ========================================================
+SELECT * FROM expired_stock;
+
+
+-- ========================================================
+-- Test 11: Verify Generated Expiry Alerts
+-- Purpose: Check if alerts were created
+-- ========================================================
+SELECT * FROM expiry_alert
+ORDER BY alert_date DESC;
+
+
+-- ========================================================
+-- Test 12: Analytics Verification
+-- Purpose: Confirm window functions return results
+-- ========================================================
+
+-- Product ranking based on total stock
+SELECT p.name,
+       SUM(b.quantity) total_qty,
+       RANK() OVER (ORDER BY SUM(b.quantity) DESC) rank_no
+FROM product p JOIN batch b
+ON p.product_id = b.product_id
+GROUP BY p.name;
+
+-- Batch expiry order per product
+SELECT product_id, batch_id, expiry_date,
+       ROW_NUMBER() OVER
+       (PARTITION BY product_id ORDER BY expiry_date) seq
+FROM batch;
+
+
+-- ========================================================
+-- Test 13: Data Integrity Checks
+-- Purpose: Confirm no negative stock values exist
+-- ========================================================
+SELECT * FROM batch
+WHERE quantity < 0;
+
+
+-- ========================================================
+-- Test 14: User & Session Test
+-- Purpose: Verify correct username logging
+-- ========================================================
+SELECT DISTINCT username
+FROM error_log;
+
+
+------CURSORS
+---Procedure: List Expired Batches
+   
+CREATE OR REPLACE PROCEDURE list_expired_batches IS
+
+    -- Explicit cursor definition
+    CURSOR c_expired_batches IS
+        SELECT batch_id, expiry_date
+        FROM batch
+        WHERE expiry_date < SYSDATE;
+
+    -- Variables to hold fetched values
+    v_batch_id  batch.batch_id%TYPE;
+    v_expiry    batch.expiry_date%TYPE;
+
+BEGIN
+    OPEN c_expired_batches;
+
+    LOOP
+        FETCH c_expired_batches
+        INTO v_batch_id, v_expiry;
+
+        EXIT WHEN c_expired_batches%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE(
+            'Expired Batch: ' || v_batch_id ||
+            ' | Expiry Date: ' || v_expiry
+        );
+    END LOOP;
+
+    CLOSE c_expired_batches;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        INSERT INTO error_log
+            (procedure_name, error_message, error_code, username)
+        VALUES
+            ('list_expired_batches',
+             SQLERRM,
+             SQLCODE,
+             USER);
+END;
+/
+
+-----testing curso
+
+SET SERVEROUTPUT ON
+EXEC list_expired_batches;
+
+CREATE OR REPLACE PROCEDURE list_expired_batches IS
+
+    CURSOR c_expired_batches IS
+        SELECT batch_id, expiry_date
+        FROM batch
+        WHERE expiry_date < TRUNC(SYSDATE);
+
+    v_batch_id  VARCHAR2(50);
+    v_expiry    DATE;
+
+BEGIN
+    OPEN c_expired_batches;
+
+    LOOP
+        FETCH c_expired_batches INTO v_batch_id, v_expiry;
+        EXIT WHEN c_expired_batches%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE(
+            'Expired Batch: ' || v_batch_id ||
+            ' | Expiry Date: ' || TO_CHAR(v_expiry, 'YYYY-MM-DD')
+        );
+    END LOOP;
+
+    CLOSE c_expired_batches;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        INSERT INTO error_log
+            (procedure_name, error_message, error_code, username)
+        VALUES
+            ('list_expired_batches',
+             SQLERRM,
+             SQLCODE,
+             USER);
+END;
+/
+
+ALTER PROCEDURE list_expired_batches COMPILE;
+SHOW ERRORS PROCEDURE list_expired_batches;
+
+SET SERVEROUTPUT ON
+EXEC list_expired_batches;
+
+---------PHASE 7
+----Stores public holidays for restriction checks
+
+CREATE TABLE public_holiday (
+    holiday_id   NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    holiday_date DATE NOT NULL,
+    description  VARCHAR2(100)
+);
+
+-----Audit Log Table
+CREATE TABLE audit_log (
+    audit_id     NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username     VARCHAR2(50),
+    action_type  VARCHAR2(10),
+    table_name   VARCHAR2(50),
+    action_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status       VARCHAR2(10),
+    message      VARCHAR2(200)
+);
+
+------Audit Logging Procedure
+
+CREATE OR REPLACE PROCEDURE log_audit (
+    p_action   IN VARCHAR2,
+    p_table    IN VARCHAR2,
+    p_status   IN VARCHAR2,
+    p_message  IN VARCHAR2
+) IS
+BEGIN
+    INSERT INTO audit_log
+        (username, action_type, table_name, status, message)
+    VALUES
+        (USER, p_action, p_table, p_status, p_message);
+END;
+/
+
+--------Restriction Check Function
+
+CREATE OR REPLACE FUNCTION is_restricted_day
+RETURN BOOLEAN IS
+    v_day       VARCHAR2(10);
+    v_holiday   NUMBER;
+BEGIN
+    -- Check weekday
+    v_day := TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH');
+
+    IF v_day IN ('MON','TUE','WED','THU','FRI') THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Check public holiday (next 1 month)
+    SELECT COUNT(*) INTO v_holiday
+    FROM public_holiday
+    WHERE holiday_date BETWEEN TRUNC(SYSDATE)
+          AND ADD_MONTHS(TRUNC(SYSDATE), 1)
+          AND holiday_date = TRUNC(SYSDATE);
+
+    IF v_holiday > 0 THEN
+        RETURN TRUE;
+    END IF;
+
+    RETURN FALSE;
+END;
+/
+
+--------Trigger (Restriction Enforcement)
+-----Restriction Check Function
+CREATE OR REPLACE FUNCTION is_restricted_day
+RETURN BOOLEAN IS
+    v_day   VARCHAR2(3);
+    v_count NUMBER;
+BEGIN
+    -- Weekday check
+    v_day := TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH');
+    IF v_day IN ('MON','TUE','WED','THU','FRI') THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Public holiday check
+    SELECT COUNT(*) INTO v_count
+    FROM public_holiday
+    WHERE holiday_date = TRUNC(SYSDATE);
+
+    IF v_count > 0 THEN
+        RETURN TRUE;
+    END IF;
+
+    RETURN FALSE;
+END;
+/
+
+-------Restriction Trigger on PRODUCT
+
+CREATE OR REPLACE TRIGGER trg_block_product_dml
+BEFORE INSERT OR UPDATE OR DELETE
+ON product
+BEGIN
+    IF is_restricted_day THEN
+        log_audit(
+            'PRODUCT',
+            ORA_SYSEVENT,
+            'DENIED',
+            'Operation blocked (weekday or holiday)'
+        );
+
+        RAISE_APPLICATION_ERROR(
+            -20050,
+            'PRODUCT modifications are not allowed on weekdays or public holidays'
+        );
+    END IF;
+END;
+/
+
+
+---- Audit Trigger on PRODUCT
+CREATE OR REPLACE TRIGGER trg_audit_product
+AFTER INSERT OR UPDATE OR DELETE
+ON product
+BEGIN
+    log_audit(
+        'PRODUCT',
+        ORA_SYSEVENT,
+        'ALLOWED',
+        'Operation completed successfully'
+    );
+END;
+/
+
+
+--insert Public Holiday
+
+INSERT INTO public_holiday
+    (holiday_date, description)
+VALUES
+    (TRUNC(SYSDATE), 'National Holiday');
+
+
+----- insert ❌ Weekday / holiday → Blocked    
+INSERT INTO product
+    (product_id, name, category, unit_price)
+VALUES
+    ('P888', 'Trigger Test', 'Medicine', 800);
+    
+SELECT *
+FROM audit_log
+ORDER BY action_date DESC;
+
+DELETE FROM product
+WHERE product_id = 'P909';
+
+SELECT *
+FROM audit_log
+ORDER BY action_date DESC;
+
+UPDATE product
+SET unit_price = 950
+WHERE product_id = 'P909';
+
+-------------------------- Bussiness integent----------
+-------audit_integrity
+
+CREATE OR REPLACE VIEW vw_audit_integrity AS
+SELECT
+    audit_id,
+    username,
+    action_type,
+    table_name,
+    status,
+    action_date,
+    message
+FROM audit_log;
+
+------------user_activity
+CREATE OR REPLACE VIEW vw_user_activity AS
+SELECT
+    user_id,
+    role,
+    SUM(phone) AS total_phone
+FROM users
+GROUP BY user_id, role;
+
+
+--------Total Product Value KPI
+CREATE OR REPLACE VIEW vw_total_product_value AS
+SELECT
+    SUM(unit_price) AS total_product_value
+FROM product;
+ ------testing
+SELECT * FROM vw_user_activity;
+SELECT * FROM vw_total_product_value;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
