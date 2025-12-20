@@ -1,156 +1,121 @@
 
-# **PHASE VIII – Business Intelligence (BI) Breakdown**
 
-## **Purpose of Phase VIII**
+# **PHASE VIII – Business Intelligence (BI) Implementation**
 
-Phase VIII focuses on **turning database data into insights**.
-It supports **management decisions, compliance monitoring, and system performance evaluation** using reports and dashboards.
+## **Short Summary**
 
----
-
-## **1️⃣ Define KPIs That Matter**
-
-These KPIs are chosen because they directly reflect **inventory health, compliance, and system activity**.
-<img width="960" height="501" alt="KPI" src="https://github.com/user-attachments/assets/081a4b4b-d964-4158-9fbf-efee3bbe12ba" />
-
-### **Inventory KPIs**
-
-* **Total Stock Level** – Total quantity of all products
-* **Low Stock Products** – Products below reorder threshold
-* **Expiring Batches** – Batches expiring within 30 days
-
-### **Compliance KPIs**
-
-* **Denied Operations** – Blocked INSERT/UPDATE/DELETE attempts
-* **Allowed Operations** – Successful transactions
-
-### **Performance KPIs**
-
-* **Total Transactions** – Overall database activity
-* **Transaction Type Count** – INSERT vs UPDATE vs DELETE
+Phase VIII focuses on transforming database data into **meaningful insights** using **Power BI**.
+The system analyzes **user activity patterns** and **product value trends** through aggregation and visualization, supporting informed decision-making.
 
 ---
 
-## **2️⃣ Identify Decision Support Needs**
+## **Objective**
 
-| Decision Area  | BI Support                  |
-| -------------- | --------------------------- |
-| Reordering     | Identify low-stock products |
-| Expiry Control | Detect near-expiry batches  |
-| Compliance     | Monitor denied operations   |
-| User Behavior  | Track actions by user       |
-| System Usage   | Measure workload trends     |
+To support management and administrative decisions by:
 
----
-
-## **3️⃣ Document Stakeholders**
-
-| Stakeholder       | Role          | BI Need                |
-| ----------------- | ------------- | ---------------------- |
-| Inventory Manager | Stock control | Stock & expiry reports |
-| System Admin      | Security      | Audit dashboards       |
-| Management        | Oversight     | KPI summaries          |
-| Auditor           | Compliance    | Violation logs         |
+* Aggregating operational data
+* Identifying usage patterns by user role
+* Analyzing product value trends over time
+* Presenting insights through dashboards
 
 ---
 
-## **4️⃣ Specify Reporting Frequency**
+## **1️⃣ Defined KPIs (Based on Implemented Power BI Analysis)**
 
-| Report              | Frequency |
-| ------------------- | --------- |
-| Inventory Status    | Daily     |
-| Expiry Alerts       | Daily     |
-| Audit Report        | Weekly    |
-| Executive Summary   | Monthly   |
-| Performance Metrics | Monthly   |
+### **KPI 1: User Activity Volume**
+
+* **Metric:** Sum of PHONE
+* **Grouped By:** USER_ID, ROLE
+* **Purpose:** Measure operational activity per user role
+<img width="960" height="501" alt="KPI" src="https://github.com/user-attachments/assets/a5554e07-4625-4a51-b15d-bdac1bc40e66" />
 
 ---
 
-## **5️⃣ Dashboard Mockups (Minimum Required)**
+### **KPI 2: Product Value Contribution**
+
+* **Metric:** Sum of UNIT_PRICE
+* **Grouped By:** CATEGORY, CREATED_AT
+* **Purpose:** Identify valuable product categories over time
+<img width="957" height="504" alt="Sum of UNIT_PRICE by category created by" src="https://github.com/user-attachments/assets/7956fdfa-495f-4ff6-b400-501610d5bdf3" />
+
+
+---
+
+## **2️⃣ Decision Support Needs**
+
+| Decision Area    | BI Insight Provided                    |
+| ---------------- | -------------------------------------- |
+| User Management  | Identify highly active user roles      |
+| Role Performance | Compare workload by role               |
+| Product Strategy | Identify high-value product categories |
+| Trend Analysis   | Track product value growth over time   |
+
+---
+
+## **3️⃣ Stakeholders**
+
+| Stakeholder          | BI Interest                        |
+| -------------------- | ---------------------------------- |
+| System Administrator | User activity by role              |
+| Management           | Product value trends               |
+| Inventory Manager    | Category-based product performance |
+| Auditors             | User-level traceability            |
+
+---
+
+## **4️⃣ Reporting Frequency**
+
+| Report Type             | Frequency |
+| ----------------------- | --------- |
+| User Activity Dashboard | Monthly   |
+| Product Value Trends    | Monthly   |
+| Executive BI Summary    | Quarterly |
+
+---
+
+## **5️⃣ Dashboards Implemented in Power BI**
 
 ---
 
 ### **A. Executive Summary Dashboard**
 
-**Purpose:** High-level overview
+**Purpose:** High-level overview for management.
 
-**Includes:**
+**Visuals Included:**
 
-* KPI Cards:
-
-  * Total Stock
-  * Low Stock Products
-  * Expiring Batches
-* Monthly stock trend chart
-* Product category distribution
+* KPI Card: Total Product Value (Sum of UNIT_PRICE)
+* Line Chart: Sum of UNIT_PRICE by CREATED_AT
+* Bar Chart: Sum of UNIT_PRICE by CATEGORY
 
 ```
-[ Total Stock ] [ Low Stock ] [ Expiring ]
-       Inventory Trend (Monthly)
+[ Total Product Value ]
+Product Value Trend (by Date)
+Category Contribution Chart
 ```
 
 ---
 
-### **B. Audit Dashboard**
 
-**Purpose:** Compliance monitoring
 
-**Includes:**
+## **6️⃣ Power BI Implementation Notes**
 
-* Denied operations count
-* Violations by user
-* Violations by day
-* Recent denied actions table
-
-```
-[ Denied Ops ]
-Violations by User | Violations by Day
-Recent Violations Table
-```
+* Data sourced from Oracle database
+* Aggregations performed using **Power BI measures**
+* Filters applied by ROLE, CATEGORY, and DATE
+* Dashboards updated monthly
 
 ---
 
-### **C. Performance Dashboard**
+## **7️⃣ One-Line Examiner Justification**
 
-**Purpose:** System usage analysis
-
-**Includes:**
-
-* INSERT / UPDATE / DELETE counts
-* Peak usage periods
-* Activity trends over time
-
-```
-Transaction Type Chart
-Daily Activity Trend
-```
+> *Phase VIII uses Power BI to analyze user activity and product value trends through aggregated metrics.*
 
 ---
 
-## **6️⃣ Why BI Matters **
+## **Conclusion**
 
-BI enables:
-
-* Data-driven decisions
-* Proactive inventory management
-* Compliance verification
-* System performance monitoring
+Phase VIII successfully demonstrates the use of **business intelligence tools** to convert raw database data into **actionable insights**, supporting management decisions and system evaluation.
 
 ---
-
-## **7️⃣  Summary**
-
-> *Phase VIII applies business intelligence techniques to support inventory, compliance, and performance decisions.*
-
----
-
-## ✅ **Phase VIII Checklist (Completed)**
-
-✔ KPIs defined
-✔ Decision needs identified
-✔ Stakeholders documented
-✔ Reporting frequency specified
-✔ Three dashboards designed
-
 
 
